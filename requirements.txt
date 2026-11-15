@@ -9,7 +9,7 @@ PySide6==6.7.3
 
 # --- Çeviri Motoru (Çevrimdışı) ---
 argostranslate==1.9.6
-ctranslate2==4.4.0
+ctranslate2==4.9.0
 sentencepiece==0.2.0
 
 # --- Dil Algılama ---
