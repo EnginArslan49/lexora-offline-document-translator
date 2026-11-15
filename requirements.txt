@@ -1,0 +1,25 @@
+# ============================================================
+# Lexora — Python Bağımlılıkları
+# Sürümler Python 3.12 ile test edilmiştir.
+# Değiştirmeden önce testleri çalıştırın.
+# ============================================================
+
+# --- Arayüz ---
+PySide6==6.7.3
+
+# --- Çeviri Motoru (Çevrimdışı) ---
+argostranslate==1.9.6
+ctranslate2==4.4.0
+sentencepiece==0.2.0
+
+# --- Dil Algılama ---
+lingua-language-detector==2.0.2
+
+# --- Belge İşleme ---
+python-docx==1.1.2
+lxml==5.3.0
+
+# --- Test ---
+pytest==8.3.3
+pytest-qt==4.4.0
+pytest-cov==5.0.0
