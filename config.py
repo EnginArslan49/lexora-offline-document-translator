@@ -94,8 +94,13 @@ LOG_DIR_FALLBACK: Final[Path] = APP_DATA_DIR / "logs"
 # Argos dil modellerinin indirileceği ve tutulacağı dizin.
 ARGOS_MODEL_DIR: Final[Path] = APP_DATA_DIR / "models"
 
-# SQLite veritabanı dosyasının yolu.
-DATABASE_PATH: Final[Path] = APP_DATA_DIR / "lexora.db"
+# JSON tabanlı kalıcılık dosyaları.
+# Veritabanı kullanmıyoruz; ayarlar ve geçmiş JSON dosyalarında tutulur.
+SETTINGS_FILE_PATH: Final[Path] = APP_DATA_DIR / "settings.json"
+HISTORY_FILE_PATH: Final[Path] = APP_DATA_DIR / "history.json"
+
+# Geçmiş kayıtlarının maksimum sayısı. Aşılırsa en eski kayıtlar budanır.
+MAX_HISTORY_ENTRIES: Final[int] = 200
 
 # Geçici çalışma dosyalarının tutulacağı dizin.
 TEMP_DIR: Final[Path] = APP_DATA_DIR / "temp"
@@ -315,15 +320,7 @@ LOG_DATE_FORMAT: Final[str] = "%Y-%m-%d %H:%M:%S"
 
 
 # ============================================================
-# 9) VERİTABANI
-# ============================================================
-
-DB_TABLE_HISTORY: Final[str] = "translation_history"
-DB_TABLE_SETTINGS: Final[str] = "app_settings"
-
-
-# ============================================================
-# 10) AYAR ANAHTARLARI (SQLite'da saklanan kullanıcı ayarları)
+# 9) AYAR ANAHTARLARI (SQLite'da saklanan kullanıcı ayarları)
 # ============================================================
 
 SETTING_THEME: Final[str] = "theme"
@@ -333,7 +330,7 @@ SETTING_WINDOW_GEOMETRY: Final[str] = "window_geometry"
 
 
 # ============================================================
-# 11) YARDIMCI FONKSİYONLAR
+# 10) YARDIMCI FONKSİYONLAR
 # ============================================================
 
 def ensure_required_dirs() -> None:
