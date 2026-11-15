@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Sanal ortam
+.venv/
+venv/
+env/
+ENV/
+
+# PyCharm
+.idea/
+*.iml
+*.iws
+
+# Dağıtım / Paketleme
+build/
+dist/
+*.spec
+*.exe
+
+# Test ve kapsam
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Log ve veritabanı
+logs/*.log
+*.db
+*.sqlite
+*.sqlite3
+
+# Argos modelleri (repo'ya girmesin)
+models/
+*.argosmodel
+
+# İşletim sistemi
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Geçici dosyalar
+*.tmp
+*.temp
+~$*
