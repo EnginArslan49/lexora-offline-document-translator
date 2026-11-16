@@ -46,3 +46,6 @@ desktop.ini
 *.tmp
 *.temp
 ~$*
+
+# PyInstaller Spec dosyasını repoya dahil et
+!lexora.spec
