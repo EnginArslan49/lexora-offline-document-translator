@@ -33,17 +33,25 @@ def make_logo(size: int = 256) -> QImage:
     p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
 
     r = size * 0.22
-    grad_rect = QRectF(0, 0, size, size)
-    g = QLinearGradient(0, 0, size, size)
+    margin = size * 0.1
+    grad_rect = QRectF(margin, margin, size - 2 * margin, size - 2 * margin)
+
+    # Dış beyaz çerçeve
+    p.setBrush(QColor("#FFFFFF"))
+    p.setPen(Qt.PenStyle.NoPen)
+    p.drawRoundedRect(QRectF(0, 0, size, size), r + margin, r + margin)
+
+    # Gradyan iç zemin
+    g = QLinearGradient(grad_rect.topLeft(), grad_rect.bottomRight())
     g.setColorAt(0.0, QColor(config.BRAND_COLORS["primary_blue"]))
     g.setColorAt(0.5, QColor(config.BRAND_COLORS["cyan"]))
     g.setColorAt(1.0, QColor(config.BRAND_COLORS["purple"]))
     p.setBrush(g)
-    p.setPen(Qt.PenStyle.NoPen)
     p.drawRoundedRect(grad_rect, r, r)
 
+    # "L" harfi
     p.setPen(QColor("#FFFFFF"))
-    f = QFont("Segoe UI", int(size * 0.55))
+    f = QFont("Segoe UI", int(size * 0.4))
     f.setBold(True)
     p.setFont(f)
     p.drawText(grad_rect, Qt.AlignmentFlag.AlignCenter, "L")

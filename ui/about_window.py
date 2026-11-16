@@ -7,7 +7,7 @@ from __future__ import annotations
 from PySide6.QtCore import Qt, QUrl
 from PySide6.QtGui import QDesktopServices, QPixmap
 from PySide6.QtWidgets import (
-    QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget,
+    QFrame, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget,
 )
 
 import config
@@ -20,16 +20,27 @@ class AboutPage(QWidget):
         super().__init__()
         layout = QVBoxLayout(self)
         layout.setContentsMargins(32, 32, 32, 32)
-        layout.setSpacing(12)
+        layout.setSpacing(16)
+        layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        # Logo (varsa).
+        # Logo (kart içinde)
         logo_path = config.IMAGES_DIR / "logo.png"
         if logo_path.exists():
+            # Logoyu bir QFrame (kart) içine al
+            logo_frame = QFrame()
+            logo_frame.setObjectName("Card")
+            logo_frame.setFixedSize(100, 100)
+            logo_frame_layout = QVBoxLayout(logo_frame)
+            logo_frame_layout.setContentsMargins(10, 10, 10, 10)
+
             logo = QLabel()
+            logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
             pix = QPixmap(str(logo_path))
             if not pix.isNull():
-                logo.setPixmap(pix.scaledToHeight(64, Qt.TransformationMode.SmoothTransformation))
-                layout.addWidget(logo)
+                logo.setPixmap(pix.scaledToHeight(72, Qt.TransformationMode.SmoothTransformation))
+
+            logo_frame_layout.addWidget(logo)
+            layout.addWidget(logo_frame)
 
         title = QLabel(config.APP_DISPLAY_NAME)
         title.setObjectName("TitleLabel")

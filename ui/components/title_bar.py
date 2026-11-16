@@ -8,7 +8,7 @@
 from __future__ import annotations
 
 from PySide6.QtCore import QPoint, Qt
-from PySide6.QtGui import QColor, QFont, QPainter, QPaintEvent
+from PySide6.QtGui import QColor, QFont, QPainter, QPaintEvent, QPen
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QWidget
 
 import config
@@ -22,7 +22,8 @@ class _TrafficButton(QPushButton):
         self._color = color
         self._symbol = symbol  # "×", "−", "□"
         self.setObjectName("TrafficButton")
-        self.setFixedSize(14, 14)
+        # Tam yuvarlak ve küçük boyut
+        self.setFixedSize(5, 5)
         self.setToolTip(tooltip)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.setFlat(True)
@@ -39,19 +40,22 @@ class _TrafficButton(QPushButton):
         super().leaveEvent(event)
 
     def paintEvent(self, event: QPaintEvent) -> None:
+        from PySide6.QtCore import QRectF
         painter = QPainter(self)
+        # Antialiasing açık olmalı ki daireler pürüzsüz olsun
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-        # Arka plan: renkli daire.
+
+        # Arka plan: Tam daire (QRectF ile float koordinatlar kullanıyoruz)
         painter.setBrush(QColor(self._color))
         painter.setPen(Qt.PenStyle.NoPen)
-        painter.drawEllipse(0, 0, self.width(), self.height())
+        painter.drawEllipse(QRectF(0, 0, self.width(), self.height()))
 
-        # Hover'da siyah simge.
+        # Hover'da siyah simge
         if self._hovered:
-            painter.setPen(QColor("#000000"))
+            painter.setPen(QPen(QColor(0, 0, 0, 200), 1.2))
             font = QFont()
             font.setBold(True)
-            font.setPointSize(9)
+            font.setPixelSize(20)  # Piksel bazlı font boyutu
             painter.setFont(font)
             painter.drawText(
                 self.rect(),
@@ -72,8 +76,8 @@ class TitleBar(QWidget):
         self.setFixedHeight(38)
 
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(12, 0, 12, 0)
-        layout.setSpacing(8)
+        layout.setContentsMargins(12, 0, 16, 0)  # Sağdan biraz daha boşluk
+        layout.setSpacing(5)  # Butonlar arası boşluğu azalt
 
         # Sol: uygulama adı.
         title = QLabel(config.APP_NAME)
@@ -81,7 +85,7 @@ class TitleBar(QWidget):
         layout.addWidget(title)
         layout.addStretch()
 
-        # Sağ: trafik ışıkları (kapat / küçült / büyüt).
+        # Sağ: trafik ışıkları.
         self._btn_min = _TrafficButton("#FEBC2E", "−", "Küçült")
         self._btn_max = _TrafficButton("#28C840", "□", "Büyüt")
         self._btn_close = _TrafficButton("#FF5F57", "×", "Kapat")
@@ -103,8 +107,8 @@ class TitleBar(QWidget):
     def mousePressEvent(self, event) -> None:
         if event.button() == Qt.MouseButton.LeftButton:
             self._drag_pos = (
-                event.globalPosition().toPoint()
-                - self._parent.frameGeometry().topLeft()
+                    event.globalPosition().toPoint()
+                    - self._parent.frameGeometry().topLeft()
             )
         super().mousePressEvent(event)
 

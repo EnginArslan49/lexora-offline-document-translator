@@ -255,7 +255,7 @@ def language_name(code: str) -> str:
 
 THEME_LIGHT: Final[str] = "light"
 THEME_DARK: Final[str] = "dark"
-DEFAULT_THEME: Final[str] = THEME_DARK
+DEFAULT_THEME: Final[str] = THEME_LIGHT
 
 # Lexora marka renkleri (her iki temada da geçerli vurgu renkleri).
 BRAND_COLORS: Final[dict[str, str]] = {
