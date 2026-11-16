@@ -62,8 +62,14 @@ class TranslationWorker(QObject):
             fmt = info["format"]
 
             out_path = build_output_path(src, out_dir, tgt_lang, overwrite=True)
+
+            # Kullanıcı manuel bir çıktı adı girdiyse:
             if self._job.get("out_name"):
-                out_path = out_dir / self._job["out_name"]
+                user_name = self._job["out_name"].strip()
+                # Eğer kullanıcı zaten uzantıyı yazmadıysa, kaynak dosyanın uzantısını ekle.
+                if not user_name.lower().endswith(fmt):
+                    user_name += fmt
+                out_path = out_dir / user_name
 
             def on_progress(cur: int, total: int) -> None:
                 self.progress.emit(cur, total)

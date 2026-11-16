@@ -35,13 +35,13 @@ class DropZone(QFrame):
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 20, 20, 20)
-        label = QLabel(
+        self._label = QLabel(
             "📄  Dosyayı buraya sürükleyin\nveya aşağıdaki butona tıklayın\n\n"
             "Desteklenen formatlar: .txt, .docx"
         )
-        label.setObjectName("DropZone")
-        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(label)
+        self._label.setObjectName("DropZone")
+        self._label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self._label)
 
     def dragEnterEvent(self, event: QDragEnterEvent) -> None:
         if event.mimeData().hasUrls():
@@ -97,6 +97,7 @@ class MainPage(QWidget):
         lang_row = QHBoxLayout()
         lang_row.addWidget(QLabel("Kaynak dil:"))
         self._src_lang = QComboBox()
+        self._src_lang.setEditable(False)
         lang_row.addWidget(self._src_lang, 1)
         lang_row.addWidget(QLabel("Hedef dil:"))
         self._tgt_lang = QComboBox()
@@ -119,15 +120,27 @@ class MainPage(QWidget):
         layout.addLayout(out_row)
 
         action_row = QHBoxLayout()
+
+        # Çeviriyi Başlat Butonu
         self._btn_translate = QPushButton("🚀  Çeviriyi Başlat")
         self._btn_translate.setObjectName("PrimaryButton")
         self._btn_translate.clicked.connect(self._on_start)
         self._btn_translate.setEnabled(False)
         action_row.addWidget(self._btn_translate, 1)
+
+        # Yeni Çeviri Butonu (Başlangıçta gizli)
+        self._btn_new = QPushButton("✨  Yeni Çeviri Yap")
+        self._btn_new.setObjectName("PrimaryButton")
+        self._btn_new.clicked.connect(self._reset_ui)
+        self._btn_new.setVisible(False)
+        action_row.addWidget(self._btn_new, 1)
+
+        # İptal Butonu (Sadece çalışırken görünür)
         self._btn_cancel = QPushButton("⏹  İptal")
         self._btn_cancel.setVisible(False)
         self._btn_cancel.clicked.connect(self._on_cancel)
         action_row.addWidget(self._btn_cancel)
+
         layout.addLayout(action_row)
 
         self._progress = QProgressBar()
@@ -142,15 +155,20 @@ class MainPage(QWidget):
         self._populate_languages()
 
     def _populate_languages(self) -> None:
+        """Mevcut Argos dillerini combobox'lara doldurur."""
         try:
             from services.model_manager import list_supported_languages
             codes = list_supported_languages()
         except Exception:
             codes = []
+
         for combo in (self._src_lang, self._tgt_lang):
             combo.clear()
             for code in codes:
                 combo.addItem(config.language_name(code), code)
+
+        if self._tgt_lang.count() > 0:
+            self._tgt_lang.setCurrentIndex(0)
 
     def _pick_file(self) -> None:
         path, _ = QFileDialog.getOpenFileName(
@@ -169,6 +187,8 @@ class MainPage(QWidget):
             fmt = config.FORMAT_DISPLAY_NAMES.get(str(info["format"]), info["format"])
             size_kb = int(info["size"]) // 1024
             self._file_info.setText(f"✅ {p.name}  •  {fmt}  •  {size_kb} KB")
+
+            # Otomatik dil algılama (TXT için)
             if info["format"] == ".txt" and "text" in info:
                 from core.language_detector import detect_language
                 r = detect_language(str(info["text"]))
@@ -177,7 +197,11 @@ class MainPage(QWidget):
                     if idx >= 0:
                         self._src_lang.setCurrentIndex(idx)
                         self._status.setText(f"Algılanan dil: {r.name} ({r.confidence:.0%})")
+
             self._btn_translate.setEnabled(True)
+            self._btn_translate.setVisible(True)
+            self._btn_new.setVisible(False)
+
         except Exception as exc:
             err = getattr(exc, "error_key", "unexpected")
             self._file_info.setText(f"❌ {user_message(err)}")
@@ -205,15 +229,34 @@ class MainPage(QWidget):
     def _on_cancel(self) -> None:
         self.cancel_requested.emit()
 
+    def _reset_ui(self) -> None:
+        """Yeni çeviri için arayüzü sıfırlar."""
+        self._source_path = None
+        self._file_info.setText("Henüz dosya seçilmedi.")
+        self._status.setText("")
+        self._out_name.clear()
+
+        # Buton durumlarını ayarla
+        self._btn_new.setVisible(False)
+        self._btn_translate.setVisible(True)
+        self._btn_translate.setEnabled(False)  # Dosya seçilene kadar pasif
+
+        # İlerleme çubuğunu sıfırla ve gizle
+        self._progress.setValue(0)
+        self._progress.setVisible(False)
+
     # --- Worker'dan gelen güncellemeler için ---
 
     def set_running(self, running: bool) -> None:
         self._is_running = running
-        self._btn_translate.setEnabled(not running and self._source_path is not None)
-        self._btn_cancel.setVisible(running)
-        self._progress.setVisible(running)
         if running:
+            self._btn_translate.setEnabled(False)
+            self._btn_new.setVisible(False)
+            self._btn_cancel.setVisible(True)
+            self._progress.setVisible(True)
             self._progress.setValue(0)
+        else:
+            self._btn_cancel.setVisible(False)
 
     def update_progress(self, current: int, total: int) -> None:
         if total > 0:
@@ -222,8 +265,18 @@ class MainPage(QWidget):
             self._status.setText(f"Çevriliyor… {current}/{total}")
 
     def show_result(self, output_path: str, success: bool, message: str = "") -> None:
-        self.set_running(False)
+        self._is_running = False
+        self._progress.setVisible(False)
+        self._btn_cancel.setVisible(False)
+
         if success:
             self._status.setText(f"✅ Tamamlandı: {output_path}")
+            # Çeviriyi başlat butonunu gizle, yeni çeviri butonunu göster
+            self._btn_translate.setVisible(False)
+            self._btn_new.setVisible(True)
         else:
             self._status.setText(f"❌ {message or 'İşlem başarısız.'}")
+            # Hata durumunda tekrar denemek için Çeviriyi Başlat butonu açık kalsın
+            self._btn_translate.setVisible(True)
+            self._btn_translate.setEnabled(True)
+            self._btn_new.setVisible(False)

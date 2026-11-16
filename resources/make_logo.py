@@ -60,22 +60,33 @@ def make_logo(size: int = 256) -> QImage:
 
 
 def main() -> None:
-    # QGuiApplication örneği oluştur (QPainter.font için zorunlu).
-    # sys.argv'ye --platform offscreen ekleyerek penceresiz çalıştırıyoruz.
+    import sys
     if "--platform" not in sys.argv:
         sys.argv.extend(["--platform", "offscreen"])
+    from PySide6.QtGui import QGuiApplication
     _app = QGuiApplication(sys.argv)
 
     config.IMAGES_DIR.mkdir(parents=True, exist_ok=True)
     config.ICONS_DIR.mkdir(parents=True, exist_ok=True)
 
+    # PNG üret
     img = make_logo(256)
     img.save(str(config.IMAGES_DIR / "logo.png"))
 
-    pix = QPixmap.fromImage(img)
-    pix.save(str(config.ICONS_DIR / "app.png"))
+    # Pillow ile ICO üret (PyInstaller için zorunlu)
+    try:
+        from PIL import Image
+        # Qt QImage'i Pillow Image'a çevir
+        img.save(str(config.ICONS_DIR / "app.png"))
+        pil_img = Image.open(str(config.ICONS_DIR / "app.png"))
+        # Windows için gerekli çoklu boyutlar
+        icon_sizes = [(16,16), (24,24), (32,32), (48,48), (64,64), (128,128), (256,256)]
+        pil_img.save(str(config.ICONS_DIR / "app.ico"), format="ICO", sizes=icon_sizes)
+        print(f"ICO üretildi: {config.ICONS_DIR / 'app.ico'}")
+    except ImportError:
+        print("UYARI: Pillow yüklü değil. ICO üretilemedi. `pip install pillow` çalıştırın.")
+
     print(f"Logo üretildi: {config.IMAGES_DIR / 'logo.png'}")
-    print(f"Icon üretildi: {config.ICONS_DIR / 'app.png'}")
 
 
 if __name__ == "__main__":
